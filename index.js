@@ -17,15 +17,16 @@ app.get('/chat', (req, res) => {
 app.post('/chat', async (req, res) => {
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    const result = await model.generateContent(req.body.message);
+    const result = await model.generateContent(req.body.message || "Hello");
     const response = await result.response;
     res.json({ response: response.text() });
   } catch (error) {
-    res.json({ response: 'Hello from Aisha! ' + req.body.message });
+    console.error(error);
+    res.json({ response: 'Hello from Aisha! AI busy right now 😊' });
   }
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log('🚀 F.AI.APP running on port ' + PORT);
 });
