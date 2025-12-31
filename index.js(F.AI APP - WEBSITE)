@@ -1,0 +1,110 @@
+const express = require('express');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+const app = express();
+
+app.use(express.static('public'));
+app.use(express.json());
+
+const genAI = new GoogleGenerativeAI('AIzaSyBOJ5qVvlWhq6yO8aPqLR4MKbV4kOHX8o4');
+
+app.get('/', (req, res) => res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>F.AI.APP - Real AI Characters</title>
+<style>
+:root{--bg:linear-gradient(135deg,#ff9a9e,#fecfef);--card:rgba(255,255,255,0.98);--accent:#ff6b6b;--success:#00b894;}
+* {margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:#2d3436;min-height:100vh;padding:20px;}
+.header{position:fixed;top:0;left:0;right:0;background:var(--card);padding:15px 20px;z-index:100;display:flex;align-items:center;gap:15px;box-shadow:0 5px 20px rgba(0,0,0,0.1);}
+.container{max-width:1200px;margin:80px auto 20px;padding:0 15px;display:grid;grid-template-columns:1fr 380px;gap:25px;}
+.card{background:var(--card);border-radius:20px;padding:25px;margin-bottom:20px;box-shadow:0 10px 40px rgba(0,0,0,0.1);border:1px solid rgba(255,255,255,0.3);}
+.family-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:15px;}
+.family-member{padding:20px;border-radius:15px;text-align:center;cursor:pointer;transition:all 0.3s;border:2px solid transparent;background:rgba(255,255,255,0.3);}
+.family-member:hover{transform:translateY(-3px);border-color:var(--accent);}
+.family-member.active{border-color:var(--success);background:rgba(0,184,148,0.2);}
+.wallet-balance{font-size:36px;font-weight:900;color:var(--success);text-align:center;margin:15px 0;}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:15px;}
+.item{padding:20px;border-radius:15px;text-align:center;cursor:pointer;transition:all 0.3s;border:2px solid transparent;}
+.item:hover{transform:translateY(-5px);border-color:var(--accent);}
+.love-header{display:flex;align-items:center;gap:15px;margin-bottom:20px;padding-bottom:15px;border-bottom:1px solid rgba(255,255,255,0.3);}
+.avatar-large{width:70px;height:70px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:28px;}
+.love-meter{background:linear-gradient(90deg,#ff4757,#ffa502,#00b894);color:white;padding:10px 20px;border-radius:25px;font-weight:bold;}
+.chat-messages{height:350px;overflow-y:auto;border:2px dashed rgba(255,255,255,0.3);border-radius:15px;padding:15px;margin-bottom:15px;background:rgba(255,255,255,0.1);}
+.message{margin-bottom:12px;opacity:0;animation:slideIn 0.3s forwards;}
+@keyframes slideIn{to{opacity:1;}}.user{text-align:right;}.ai{text-align:left;}
+.message-content{display:inline-block;max-width:80%;padding:12px 18px;border-radius:20px;}
+.user .message-content{background:var(--accent);color:white;}.ai .message-content{background:linear-gradient(135deg,#f093fb,#f5576c);color:white;}
+.mic-btn{width:60px;height:60px;border:none;border-radius:50%;font-size:24px;cursor:pointer;background:var(--success);color:white;}
+.mic-listening{background:#ff4757;animation:pulse 1s infinite;}@keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.1);}}
+.input-row{display:flex;gap:10px;align-items:center;}.chat-input{flex:1;padding:12px 18px;border:2px solid rgba(255,255,255,0.3);border-radius:25px;background:rgba(255,255,255,0.7);font-size:16px;}
+.btn{padding:12px 20px;background:var(--success);color:white;border:none;border-radius:25px;font-weight:bold;cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="header">
+<div style="font-size:18px;font-weight:bold;">🤖 F.AI.APP</div>
+</div>
+<div class="container">
+<div>
+<div class="card">
+<h3 style="text-align:center;margin-bottom:15px;">👨‍👩‍👧‍👦 Family</h3>
+<div class="family-grid" id="familyGrid">
+<div class="family-member active" data-index="0"><div style="font-size:36px;">😍</div>Aisha<br><small>GF</small></div>
+<div class="family-member" data-index="1"><div style="font-size:36px;">👩</div>Mummy<br><small>Mom</small></div>
+<div class="family-member" data-index="2"><div style="font-size:36px;">👨</div>Papa<br><small>Dad</small></div>
+</div>
+</div>
+<div class="card">
+<div style="font-size:50px;text-align:center;margin-bottom:10px;">💰</div>
+<div class="wallet-balance" id="wallet">$100</div>
+</div>
+<div class="card">
+<h3 style="text-align:center;margin-bottom:15px;">💼 Jobs</h3>
+<div class="grid">
+<div class="item" onclick="doJob(50)"><div style="font-size:36px;">📦</div>Delivery $50</div>
+<div class="item" onclick="doJob(40)"><div style="font-size:36px;">🍽️</div>Waiter $40</div>
+<div class="item" onclick="doJob(60)"><div style="font-size:36px;">🚗</div>Driver $60</div>
+</div>
+</div>
+</div>
+<div class="card">
+<div class="love-header">
+<div class="avatar-large" id="avatar">😍</div>
+<div style="font-size:22px;font-weight:bold;flex:1;" id="charName">Aisha</div>
+<div class="love-meter" id="loveMeter">Love: 0%</div>
+</div>
+<div style="display:flex;gap:10px;margin-bottom:15px;">
+<button class="mic-btn" onclick="toggleVoice()" id="micBtn">🎤</button>
+<span id="voiceStatus" style="flex:1;text-align:center;font-size:14px;">Voice Ready</span>
+</div>
+<div class="chat-messages" id="chat"></div>
+<div class="input-row">
+<input class="chat-input" id="input" placeholder="Bolo..." onkeypress="if(event.key==='Enter')sendMsg()">
+<button class="btn" onclick="sendMsg()">Send 💌</button>
+</div>
+</div>
+</div>
+<script>
+let wallet=100,currentChar={name:'Aisha',type:'gf',emoji:'😍',love:0},chatHistory=[],isListening=false,recognition;
+const family=[{name:'Aisha',type:'gf',emoji:'😍',love:0},{name:'Mummy',type:'mom',emoji:'👩',love:70},{name:'Papa',type:'dad',emoji:'👨',love:80}];
+document.querySelectorAll('.family-member').forEach((m,i)=>m.onclick=()=>switchChar(i));
+async function sendMsg(){const msg=document.getElementById('input').value.trim();if(!msg)return;addMsg('You',msg);document.getElementById('input').value='';try{const res=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({character:currentChar,message:msg,history:chatHistory,wallet})});const data=await res.json();addMsg(currentChar.name,data.reply);chatHistory.push({role:'user',content:msg},{role:'ai',content:data.reply});speak(data.reply);}catch(e){addMsg(currentChar.name,'Sorry, thodi problem hui 😅');}}
+function switchChar(i){currentChar=family[i];document.querySelectorAll('.family-member').forEach((m,j)=>m.classList.toggle('active',i===j));document.getElementById('avatar').textContent=currentChar.emoji;document.getElementById('charName').textContent=currentChar.name;document.getElementById('loveMeter').textContent=`${currentChar.type==='gf'?'Love':'Affection'}: ${currentChar.love}%`;}
+function doJob(amount){wallet+=amount;document.getElementById('wallet').textContent=`$${wallet}`;addMsg('System',`✅ Job done! +$${amount}`);if(currentChar.type==='gf')currentChar.love=Math.min(100,currentChar.love+2);}
+function addMsg(sender,msg){const chat=document.getElementById('chat');const div=document.createElement('div');div.className=`message ${sender==='You'?'user':'ai'}`;div.innerHTML=`<div class="message-content">${sender}: ${msg}</div>`;chat.appendChild(div);chat.scrollTop=chat.scrollHeight;}
+function toggleVoice(){const btn=document.getElementById('micBtn'),status=document.getElementById('voiceStatus');if(isListening){if(recognition)recognition.stop();btn.classList.remove('mic-listening');status.textContent='Voice Ready';isListening=false;}else{btn.classList.add('mic-listening');status.textContent='Listening... 🗣️';if('webkitSpeechRecognition'in window){const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;recognition=new SpeechRecognition();recognition.lang='hi-IN';recognition.onresult=e=>{const text=e.results[0][0].transcript;document.getElementById('input').value=text;sendMsg();};recognition.start();}isListening=true;}}
+function speak(text){if('speechSynthesis'in window){speechSynthesis.cancel();const utterance=new SpeechSynthesisUtterance(text);utterance.rate=0.9;utterance.pitch=1.1;utterance.lang='hi-IN';speechSynthesis.speak(utterance);}}
+</script>
+</body></html>`);
+
+app.post('/chat',async(req,res)=>{try{const{character,message,history=[],wallet=100}=req.body;const model=genAI.getGenerativeModel({model:"gemini-1.5-flash"});const prompt=`Tum ${character.name} ho (${character.type}). Rahul se pyar se Hindi-English mix me natural family reply karo.
+Rahul ka wallet: $${wallet}, Love: ${character.love}%.
+Rahul ne kaha: "${message}"
+
+Short emotional reply (max 100 words):`;const result=await model.generateContent(prompt);res.json({reply:result.response.text().trim()});}catch(e){console.error('AI Error:',e);res.json({reply:'Hii Rahul jaanu! 😍 Kya haal hai baby? Main yahan hu tere liye 💕'});}});
+
+const port=process.env.PORT||3000;
+app.listen(port,()=>console.log(`🚀 F.AI.APP LIVE on ${port}`));
