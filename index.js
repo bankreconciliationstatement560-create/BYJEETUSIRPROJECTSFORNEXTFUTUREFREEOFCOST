@@ -1,7 +1,11 @@
 const express = require('express');
 const app = express();
 app.use(express.json());
-
+const express = require('express');
+const { GoogleGenerativeAI }=
+  require('@google/generative-ai');
+const genAI = new
+GoogleGenerativeAI('gen-lang-client-0678353313');
 app.get('/', (req, res) => {
   res.send('F.AI.APP LIVE! 🚀');
 });
